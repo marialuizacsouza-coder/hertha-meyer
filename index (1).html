@@ -1,0 +1,591 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Ultramicrótomo Porter-Blum</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<style>
+/* Layout: coluna editorial única, com módulos interativos (simulador, passo a passo, linha do tempo, quiz, perguntas) entre blocos de texto curtos. */
+:root{
+  --bg:#ffffff; --surface:#fff4f8; --ink:#0d0d0d; --muted:#5a4852; --line:#f1c7d8;
+  --accent:#d6246e; --accent-soft:#fde0ec; --mark:#ec4a93; --mark-soft:#ffe6f0;
+  --ok:#0d0d0d; --bad:#b8003f;
+  --f-display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Literata",Georgia,"Times New Roman",serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0a0a0a; --surface:#171116; --ink:#ffffff; --muted:#cbb0be; --line:#3b2331;
+    --accent:#ff5fa8; --accent-soft:#2d1524; --mark:#ff7ab8; --mark-soft:#3b1a2c;
+    --ok:#ffffff; --bad:#ff8aa8; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0a0a0a; --surface:#171116; --ink:#ffffff; --muted:#cbb0be; --line:#3b2331;
+  --accent:#ff5fa8; --accent-soft:#2d1524; --mark:#ff7ab8; --mark-soft:#3b1a2c;
+  --ok:#ffffff; --bad:#ff8aa8; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:64px}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.65;
+  padding-block:0 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.wrap{max-width:1040px;margin-inline:auto}
+h1,h2,h3{font-family:var(--f-display);line-height:1.08;text-wrap:balance;margin:0}
+h2{font-size:clamp(1.7rem,4.2vw,2.5rem);font-weight:800;letter-spacing:-.02em}
+h3{font-size:1.15rem;font-weight:700}
+p{margin:0 0 1em;max-width:65ch}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--mark);outline-offset:2px;border-radius:4px}
+.label{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+button{font:inherit;color:inherit;cursor:pointer}
+
+/* capa */
+.cover{background:#0a0a0a;color:#fff;margin-left:calc(-1*max(16px,env(safe-area-inset-left,0px)));margin-right:calc(-1*max(16px,env(safe-area-inset-right,0px)));padding-block:56px 0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:6px solid #ff5fa8;overflow:hidden}
+.cover .label{color:#e9b9cf}
+.cover h1{font-size:clamp(2.8rem,10vw,7rem);font-weight:800;letter-spacing:-.04em;margin-top:18px;max-width:14ch}
+.cover h1 em{font-style:normal;color:#ff5fa8}
+.cover .sub{font-size:1.2rem;color:#f1dce6;margin:22px 0 28px;max-width:46ch}
+.cover .go{display:inline-block;background:#ff5fa8;color:#0a0a0a;text-decoration:none;font-family:var(--f-display);font-weight:800;padding:14px 24px;border-radius:8px}
+.cover .go:hover{background:#fff}
+.cover .years{font-family:var(--f-mono);font-size:.8rem;letter-spacing:.1em;color:#e9b9cf;margin-top:28px}
+.slices{height:120px;margin-top:40px;background:repeating-linear-gradient(0deg,#ff5fa8 0,#ff5fa8 2px,transparent 2px,transparent 10px);-webkit-mask-image:linear-gradient(90deg,transparent,#000 60%);mask-image:linear-gradient(90deg,transparent,#000 60%)}
+
+/* quem foi */
+.who{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.5fr);gap:40px;align-items:start}
+.who-side{position:sticky;top:76px;display:grid;gap:18px}
+.who-name{font-family:var(--f-display);font-weight:800;font-size:clamp(2.4rem,6vw,4rem);line-height:.95;letter-spacing:-.03em}
+.who-name span{display:block;color:var(--accent)}
+.route{display:grid;gap:0;border-left:3px solid var(--accent);margin-left:6px}
+.route div{padding:0 0 18px 18px;position:relative}
+.route div:last-child{padding-bottom:0}
+.route div::before{content:"";position:absolute;left:-10px;top:6px;width:14px;height:14px;border-radius:50%;background:var(--bg);border:3px solid var(--accent)}
+.route b{font-family:var(--f-display);display:block}
+.route span{font-size:.9rem;color:var(--muted)}
+.who-text p{font-size:1.08rem}
+.who-text p:first-child::first-line{font-weight:600}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:28px 0}
+.facts div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.facts b{display:block;font-family:var(--f-display);font-weight:800;font-size:1.6rem;color:var(--accent);line-height:1.1}
+.facts span{font-size:.85rem;color:var(--muted)}
+.next{display:inline-block;margin-top:6px;font-family:var(--f-display);font-weight:700}
+
+/* barra superior */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+.bar .wrap{display:flex;gap:20px;align-items:center;min-height:52px}
+.bar b{font-family:var(--f-display);font-weight:800;white-space:nowrap}
+.bar nav{display:flex;gap:4px;overflow-x:auto;min-width:0;scrollbar-width:thin}
+.bar nav a{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.04em;text-decoration:none;color:var(--muted);padding:8px 10px;border-radius:6px;white-space:nowrap}
+.bar nav a:hover{background:var(--accent-soft);color:var(--ink)}
+.theme{margin-left:auto;border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:6px 10px;font-family:var(--f-mono);font-size:.72rem}
+
+section{padding-block:72px 8px}
+.head{display:grid;gap:12px;margin-bottom:28px}
+.head p{color:var(--muted);margin:0}
+
+/* hero */
+.hero{padding-block:56px 8px}
+.hero h1{font-size:clamp(2.6rem,9vw,6.4rem);font-weight:800;letter-spacing:-.035em}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero .lede{font-size:1.2rem;margin-top:20px;max-width:58ch}
+.sim{margin-top:40px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:clamp(16px,3vw,32px);display:grid;gap:22px}
+.sim-top{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end;justify-content:space-between}
+.sim-top label{display:grid;gap:6px;flex:1 1 280px;min-width:0}
+.sim-n{font-family:var(--f-display);font-weight:800;font-size:clamp(2.2rem,7vw,4rem);line-height:1;letter-spacing:-.03em}
+.sim-n small{font-family:var(--f-mono);font-size:.8rem;font-weight:400;color:var(--muted);letter-spacing:0;display:block;margin-top:6px}
+input[type=range]{width:100%;accent-color:var(--accent);height:32px}
+.slab{height:72px;border-radius:6px;border:1px solid var(--line);background:var(--accent-soft);position:relative;overflow:hidden}
+.slab i{position:absolute;inset:0}
+.ticks{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.7rem;color:var(--muted)}
+.verdict{display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:8px;background:var(--mark-soft);font-size:.98rem}
+.verdict .dot{width:12px;height:12px;border-radius:50%;background:var(--mark);flex:none}
+.verdict[data-ok="yes"] .dot{background:var(--ok)}
+.verdict[data-ok="no"] .dot{background:var(--bad)}
+.note{font-size:.85rem;color:var(--muted);max-width:none;margin:0}
+
+/* passo a passo */
+.steps{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:28px;align-items:start}
+.steplist{display:grid;gap:8px}
+.step{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;gap:4px}
+.step[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--accent)}
+.step .label{color:var(--accent)}
+.step span.t{font-family:var(--f-display);font-weight:700;font-size:1.05rem}
+.step p{margin:4px 0 0;font-size:.95rem;color:var(--muted);display:none}
+.step[aria-pressed="true"] p{display:block}
+.diagram{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;position:sticky;top:76px}
+.diagram svg{width:100%;height:auto;display:block}
+.g{opacity:.28;transition:opacity .25s}
+.g.on{opacity:1}
+.t-ink{fill:var(--muted);font-family:var(--f-mono);font-size:11px}
+
+/* linha do tempo */
+.tl{display:grid;gap:20px}
+.tl-rail{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;border-bottom:1px solid var(--line);scrollbar-width:thin}
+.tl-rail button{flex:none;background:transparent;border:1px solid transparent;border-radius:6px;padding:8px 12px;font-family:var(--f-mono);font-size:.85rem;color:var(--muted)}
+.tl-rail button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.tl-rail button.key{border-color:var(--mark);color:var(--ink)}
+.tl-rail button.key[aria-selected="true"]{color:var(--bg)}
+.tl-panel{display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.6fr);gap:24px;align-items:start}
+.tl-year{font-family:var(--f-display);font-weight:800;font-size:clamp(3.4rem,10vw,6rem);line-height:.9;letter-spacing:-.04em;color:var(--accent)}
+.tl-panel h3{font-size:1.5rem;margin-bottom:10px}
+.src{font-family:var(--f-mono);font-size:.74rem;color:var(--muted)}
+
+/* quiz */
+.quiz{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:clamp(16px,3vw,28px);display:grid;gap:18px}
+.q-opts{display:grid;gap:8px}
+.q-opts button{text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.q-opts button:hover:not(:disabled){border-color:var(--accent)}
+.q-opts button.right{border-color:var(--ok);background:var(--accent-soft)}
+.q-opts button.wrong{border-color:var(--bad)}
+.q-fb{min-height:3.2em;margin:0;font-size:.97rem}
+.q-nav{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.btn{background:var(--accent);color:var(--bg);border:0;border-radius:8px;padding:10px 18px;font-family:var(--f-display);font-weight:700}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:disabled{opacity:.45;cursor:default}
+
+/* perguntas */
+.ask{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
+.ask form{display:grid;gap:12px}
+textarea{width:100%;min-height:120px;resize:vertical;font:inherit;font-size:1rem;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{background:var(--accent-soft);border:0;border-radius:99px;padding:6px 12px;font-size:.85rem}
+.qlist{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.qlist li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-size:.97rem;overflow-wrap:anywhere}
+.qlist .empty{color:var(--muted);border-style:dashed}
+
+/* visita */
+.visit{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.visit div{padding:18px 20px;border-right:1px solid var(--line);min-width:0}
+.visit div:last-child{border-right:0}
+.visit b{display:block;font-family:var(--f-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;font-weight:500}
+.visit span{overflow-wrap:anywhere}
+
+/* modelo */
+.models{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-bottom:20px}
+.model{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;display:grid;gap:6px;align-content:start}
+.model[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.model.mine{border-color:var(--mark)}
+.model .tag{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.model .nm{font-family:var(--f-display);font-weight:700}
+.mdetail{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:clamp(16px,3vw,28px);display:grid;gap:10px}
+.mdetail p{margin:0}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;margin-top:28px}
+.cols ul{margin:8px 0 0;padding-left:1.1em}
+.cols li{margin-bottom:6px}
+.sources{columns:2 320px;column-gap:32px;padding-left:1.1em;font-size:.9rem}
+.sources li{margin-bottom:8px;break-inside:avoid;overflow-wrap:anywhere}
+footer{margin-top:72px;padding-top:18px;border-top:1px solid var(--line);font-family:var(--f-mono);font-size:.76rem;color:var(--muted)}
+
+@media (max-width:760px){
+  .who{grid-template-columns:minmax(0,1fr)}
+  .who-side{position:static}
+  .steps,.tl-panel,.ask{grid-template-columns:minmax(0,1fr)}
+  .diagram{position:static}
+  .bar b{display:none}
+  .visit div{border-right:0;border-bottom:1px solid var(--line)}
+  .visit div:last-child{border-bottom:0}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.g{transition:none}}
+</style>
+
+<div class="cover" id="capa">
+  <div class="wrap">
+    <p class="label">Divulgação Científica e Acervos Culturais</p>
+    <h1>Hertha Meyer e a máquina que <em>fatia células</em></h1>
+    <p class="sub">Conheça a cientista e o ultramicrótomo Porter-Blum, do acervo do Espaço Memorial Carlos Chagas Filho, na UFRJ. Um site para explorar, testar e perguntar.</p>
+    <a class="go" href="#quem-foi">Começar pela Hertha</a>
+    <p class="years">1902 — 1990 · INSTITUTO DE BIOFÍSICA CARLOS CHAGAS FILHO</p>
+    <div class="slices" aria-hidden="true"></div>
+  </div>
+</div>
+
+<header class="bar">
+  <div class="wrap">
+    <b>Porter-Blum</b>
+    <nav aria-label="Seções">
+      <a href="#quem-foi">Quem foi Hertha</a>
+      <a href="#corte">O corte</a>
+      <a href="#funcionamento">Como funciona</a>
+      <a href="#hertha">Linha do tempo</a>
+      <a href="#participe">Participe</a>
+      <a href="#visita">Visite</a>
+      <a href="#modelo">Sobre o trabalho</a>
+    </nav>
+    <button class="theme" id="theme" type="button" aria-label="Alternar tema claro e escuro">tema</button>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section id="quem-foi">
+  <div class="who">
+    <div class="who-side">
+      <p class="label">Quem foi</p>
+      <div class="who-name">Hertha<span>Meyer</span></div>
+      <p class="label" style="margin:0">3 de maio de 1902 · 1990</p>
+      <div class="route" aria-label="Trajetória de Hertha Meyer">
+        <div><b>Alemanha</b><span>Nasce e estuda cultura de tecidos em Berlim</span></div>
+        <div><b>Itália</b><span>Foge da perseguição nazista e trabalha em Turim</span></div>
+        <div><b>Brasil, 1939</b><span>Chega ao Rio de Janeiro e fica até o fim da vida</span></div>
+      </div>
+    </div>
+    <div class="who-text">
+      <p>Hertha Meyer foi uma cientista alemã que fez no Rio de Janeiro uma parte importante da história da biologia celular. Especializou-se em cultura de tecidos, a técnica de manter células vivas fora do corpo, na escola de Albert Fischer, em Berlim.</p>
+      <p>Com a perseguição aos judeus pelo regime nazista, saiu da Alemanha e foi trabalhar na Universidade de Turim, no grupo do histologista Giuseppe Levi. Lá ficou amiga de uma colega que ganharia o Nobel de Medicina anos depois, Rita Levi-Montalcini.</p>
+      <p>Chegou ao Brasil em 1939 e começou no Instituto Rockefeller, em Manguinhos, na produção da vacina contra a febre amarela. Em 1941, Carlos Chagas Filho a convidou para chefiar o Laboratório de Cultura de Tecidos, o embrião do Instituto de Biofísica da UFRJ. Segundo a biografia dela na Wikipédia, ele manteve a contratação mesmo depois de ameaças de simpatizantes do nazismo de cortar as verbas da pesquisa.</p>
+      <p>No laboratório, Hertha foi pioneira em cultivar parasitas, entre eles o <i>Trypanosoma cruzi</i>, que causa a doença de Chagas, e em usar o microscópio eletrônico para ver como eles são por dentro. Para isso ela precisava de amostras cortadas em fatias finíssimas. É aí que entra a máquina do museu.</p>
+      <div class="facts">
+        <div><b>1941</b><span>chefia o Laboratório de Cultura de Tecidos</span></div>
+        <div><b>1980</b><span>recebe o título de Doutora Honoris Causa da UFRJ</span></div>
+        <div><b>ABC</b><span>eleita para a Academia Brasileira de Ciências</span></div>
+        <div><b>Nome</b><span>dá nome a um laboratório e ao auditório do Instituto</span></div>
+      </div>
+      <p class="src">Fontes: Academia Brasileira de Ciências; Vitrines Memoriais do EMCCF; Jornal do Brasil (2012); Wikipédia.</p>
+      <a class="next" href="#corte">Agora, a máquina</a>
+    </div>
+  </div>
+</section>
+
+<section class="hero" id="corte">
+  <p class="label">Acervo do Espaço Memorial Carlos Chagas Filho · UFRJ</p>
+  <h1>Um fio de cabelo em <em id="h1n">2.000</em> fatias</h1>
+  <p class="lede">O ultramicrótomo Porter-Blum fatia amostras biológicas tão finas que os elétrons de um microscópio eletrônico conseguem atravessá-las. Um exemplar fica no museu do Instituto de Biofísica da UFRJ, ligado à pesquisadora Hertha Meyer. Mexa no controle e veja o que muda.</p>
+
+  <div class="sim">
+    <div class="sim-top">
+      <label for="thick">
+        <span class="label">Espessura do corte</span>
+        <input type="range" id="thick" min="25" max="500" step="5" value="60">
+      </label>
+      <div class="sim-n"><span id="tn">60 nm</span><small id="tcount">100 µm de cabelo = 1.667 fatias</small></div>
+    </div>
+    <div class="slab" aria-hidden="true"><i id="stripes"></i></div>
+    <div class="ticks" aria-hidden="true"><span>0</span><span>trecho ampliado: 1 µm do cabelo (1/100 da largura)</span><span>1 µm</span></div>
+    <div class="verdict" id="verdict" data-ok="yes"><span class="dot"></span><span id="vtext"></span></div>
+    <p class="note">O controle vai de 25 a 500 nm, a faixa que o modelo comercial de 1953 conseguia cortar. Cabelo com 0,1 mm de diâmetro (100 µm). Para imagens com bons detalhes, cortes entre 30 e 60 nm. Acima de uns 150 nm o feixe de elétrons quase não atravessa o material biológico.</p>
+  </div>
+</section>
+
+<section id="funcionamento">
+  <div class="head">
+    <p class="label">Do tecido à imagem</p>
+    <h2>Como a máquina corta algo que ninguém enxerga</h2>
+    <p>Clique em cada etapa. O esquema ao lado é simplificado, feito para este trabalho, e não reproduz o desenho original do museu.</p>
+  </div>
+  <div class="steps">
+    <div class="steplist" id="steplist"></div>
+    <div class="diagram">
+      <svg viewBox="0 0 420 300" role="img" aria-label="Esquema simplificado do corte: bloco de resina avançando até uma faca de vidro, com a fatia flutuando na água">
+        <g class="g" data-s="0,1">
+          <rect x="40" y="46" width="130" height="18" rx="3" fill="var(--muted)"/>
+          <rect x="132" y="64" width="38" height="46" fill="var(--mark)"/>
+          <text x="40" y="36" class="t-ink">braço com o bloco de resina</text>
+        </g>
+        <g class="g" data-s="2">
+          <path d="M96 100 H128" stroke="var(--accent)" stroke-width="3" marker-end="url(#ar)"/>
+          <circle cx="82" cy="100" r="13" fill="none" stroke="var(--accent)" stroke-width="3"/>
+          <text x="40" y="136" class="t-ink">botão de avanço: 25 a 500 nm</text>
+        </g>
+        <g class="g" data-s="3,4">
+          <path d="M214 120 L276 100 L276 150 L214 150 Z" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+          <text x="214" y="170" class="t-ink">faca de vidro</text>
+        </g>
+        <g class="g" data-s="3,4">
+          <path d="M214 150 H380 V236 H214 Z" fill="var(--accent-soft)" stroke="var(--line)" stroke-width="2"/>
+          <path d="M214 176 H380" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5 4"/>
+          <text x="226" y="226" class="t-ink">água na cuba</text>
+        </g>
+        <g class="g" data-s="3">
+          <rect x="176" y="106" width="4" height="26" fill="var(--mark)"/>
+          <text x="140" y="268" class="t-ink">a fatia se solta do bloco</text>
+        </g>
+        <g class="g" data-s="4">
+          <rect x="262" y="166" width="62" height="6" rx="2" fill="var(--mark)"/>
+          <circle cx="352" cy="120" r="18" fill="none" stroke="var(--ink)" stroke-width="2" stroke-dasharray="3 3"/>
+          <path d="M270 160 Q300 130 336 128" stroke="var(--ink)" fill="none" stroke-width="2"/>
+          <text x="318" y="96" class="t-ink">grade de cobre</text>
+          <text x="214" y="268" class="t-ink" opacity="0"> </text>
+        </g>
+        <defs><marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="var(--accent)"/></marker></defs>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section id="hertha">
+  <div class="head">
+    <p class="label">Linha do tempo</p>
+    <h2>A vida de Hertha Meyer, ano a ano</h2>
+    <p>Escolha um ano. Os anos com contorno rosa ligam diretamente à chegada da máquina ao Instituto de Biofísica.</p>
+  </div>
+  <div class="tl">
+    <div class="tl-rail" id="rail" role="tablist" aria-label="Linha do tempo"></div>
+    <div class="tl-panel" role="tabpanel" aria-live="polite">
+      <div class="tl-year" id="ty">1953</div>
+      <div><h3 id="tt"></h3><p id="tp"></p><p class="src" id="ts"></p></div>
+    </div>
+  </div>
+</section>
+
+<section id="participe">
+  <div class="head">
+    <p class="label">Sua vez</p>
+    <h2>Teste o que você leu e leve suas perguntas para o museu</h2>
+  </div>
+  <div class="ask">
+    <div>
+      <h3 style="margin-bottom:12px">Quiz de 3 perguntas</h3>
+      <div class="quiz" id="quiz"></div>
+    </div>
+    <div>
+      <h3 style="margin-bottom:12px">O que você perguntaria?</h3>
+      <form id="askform">
+        <label for="qtext" class="label">Sua pergunta ou opinião</label>
+        <textarea id="qtext" maxlength="280" placeholder="Escreva aqui o que você gostaria de saber sobre a máquina ou sobre a Hertha."></textarea>
+        <div class="chips" id="chips" aria-label="Ideias de pergunta"></div>
+        <input type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true" style="display:none">
+        <div><button class="btn" type="submit">Enviar e adicionar à minha lista</button></div>
+        <p class="note" id="qstatus" role="status" aria-live="polite" style="margin:0"></p>
+      </form>
+      <ul class="qlist" id="qlist" style="margin-top:16px"></ul>
+      <p class="note" style="margin-top:12px">Ao enviar, sua pergunta chega por e-mail à autora deste trabalho, e a lista também fica salva neste navegador. Para fazer as perguntas a quem entende do acervo, agende uma visita mediada com o museu e leve a sua lista.</p>
+    </div>
+  </div>
+</section>
+
+<section id="visita">
+  <div class="head">
+    <p class="label">Pessoalmente</p>
+    <h2>Veja a máquina de perto</h2>
+    <p>O Espaço Memorial Carlos Chagas Filho tem exposição interativa, mediadores e oficinas com instrumentos científicos históricos, muitos ainda funcionando.</p>
+  </div>
+  <div class="visit">
+    <div><b>Onde</b><span>Av. Carlos Chagas Filho, 373, CCS, Bloco G, Ilha do Fundão, Rio de Janeiro</span></div>
+    <div><b>Entrada</b><span>Gratuita, de segunda a sexta. Confirme o horário e agende no Instagram @emccf_ufrj</span></div>
+    <div><b>Fundado</b><span>20 de dezembro de 2000, no Instituto de Biofísica Carlos Chagas Filho (UFRJ)</span></div>
+  </div>
+</section>
+
+<section id="modelo">
+  <div class="head">
+    <p class="label">Sobre este trabalho</p>
+    <h2>Modelo de divulgação escolhido: Engajamento Público</h2>
+    <p>Disciplina Divulgação Científica e Acervos Culturais. Os quatro modelos de Compreensão Pública da Ciência vêm de Lewenstein e Brossard (2006), vistos em aula. Clique para comparar.</p>
+  </div>
+  <div class="models" id="models"></div>
+  <div class="mdetail" id="mdetail" aria-live="polite"></div>
+  <div class="cols">
+    <div>
+      <h3>Como o site aplica o modelo</h3>
+      <ul>
+        <li>O visitante controla a espessura do corte e descobre o limite do microscópio sozinho.</li>
+        <li>As etapas e os anos são escolhidos por quem lê, não impostos em ordem fixa.</li>
+        <li>A caixa de perguntas recebe a curiosidade de quem visita e encaminha para a mediação do museu.</li>
+        <li>A história de uma cientista e de uma máquina aparece junto com o contexto de quem as usou.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Limites que a aula aponta</h3>
+      <ul>
+        <li>O modelo foca no processo da ciência mais do que nos conteúdos.</li>
+        <li>Costuma atingir poucas pessoas.</li>
+        <li>As contribuições do público nem sempre entram em decisões, o que pode frustrar. Por isso o site leva as perguntas de volta ao museu.</li>
+      </ul>
+    </div>
+  </div>
+  <h3 style="margin:36px 0 12px">Fontes</h3>
+  <ol class="sources">
+    <li><a href="https://emccf.biof.ufrj.br/exposicoes/vitrines-memoriais/" target="_blank" rel="noopener">Vitrines Memoriais, Espaço Memorial Carlos Chagas Filho</a> (microscópio Philips EM 100, EM6-B, Raul Machado)</li>
+    <li><a href="https://emccf.biof.ufrj.br/historia/" target="_blank" rel="noopener">História do EMCCF</a></li>
+    <li><a href="https://pantheon.ufrj.br/bitstream/11422/26441/1/CSBispo.pdf" target="_blank" rel="noopener">BISPO, C. S. Lâminas ilustradas: um objeto do Espaço Memorial Carlos Chagas Filho (TCC, UFRJ)</a> (legenda sobre o ultramicrótomo do museu)</li>
+    <li><a href="https://exposicoes.abc.org.br/100anos/academico/hertha-meyer/" target="_blank" rel="noopener">Academia Brasileira de Ciências, Hertha Meyer</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Hertha_Meyer" target="_blank" rel="noopener">Hertha Meyer, Wikipédia (inglês)</a></li>
+    <li><a href="https://www.jb.com.br/sociedade-aberta/noticias/2012/04/25/mais-que-centenarios-ilustres.html" target="_blank" rel="noopener">Mais que Centenários Ilustres, Jornal do Brasil (2012)</a> (experimento de Rita Levi-Montalcini no Rio)</li>
+    <li><a href="https://digitalcommons.rockefeller.edu/tools-for-discovery/47/" target="_blank" rel="noopener">Rockefeller University, Tools for Discovery: Blum at Sorvall microtome</a></li>
+    <li><a href="https://selections.rockefeller.edu/a-spin-through-the-past-early-centrifuges-and-microtomes-in-flexner-halls-historic-lab/" target="_blank" rel="noopener">Rockefeller Selections, Early centrifuges and microtomes</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Ultramicrotomy" target="_blank" rel="noopener">Ultramicrotomy, Wikipédia (inglês)</a> (espessuras e limite do feixe de elétrons)</li>
+    <li>Aula 2, Divulgação Científica: Teorias e Modelos (Negreiros e Mendes, UFRJ).</li>
+  </ol>
+</section>
+
+<footer>Trabalho da disciplina Divulgação Científica e Acervos Culturais · Objeto: ultramicrótomo Porter-Blum, acervo do EMCCF/IBCCF/UFRJ</footer>
+</main>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  function fmt(n){return n.toLocaleString("pt-BR")}
+
+  /* tema */
+  var root=document.documentElement;
+  $("theme").addEventListener("click",function(){
+    var dark=root.getAttribute("data-theme")==="dark"||(!root.getAttribute("data-theme")&&window.matchMedia("(prefers-color-scheme: dark)").matches);
+    root.setAttribute("data-theme",dark?"light":"dark");
+  });
+
+  /* simulador */
+  var th=$("thick");
+  function sim(){
+    var t=+th.value, n=Math.round(100000/t), period=t/1000*100;
+    $("tn").textContent=t+" nm";
+    $("tcount").textContent="100 µm de cabelo = "+fmt(n)+" fatias";
+    $("h1n").textContent=fmt(n);
+    $("stripes").style.background="repeating-linear-gradient(90deg,var(--mark) 0,var(--mark) calc("+period+"% - 2px),transparent calc("+period+"% - 2px),transparent "+period+"%)";
+    var v=$("verdict"), msg;
+    if(t<=100){v.setAttribute("data-ok","yes");msg=t<=60?"Faixa ideal para imagem com muitos detalhes. Os elétrons atravessam a fatia.":"Fino o bastante. Os elétrons atravessam, com menos detalhe que em cortes de 30 a 60 nm."}
+    else if(t<=150){v.setAttribute("data-ok","");msg="No limite. O feixe ainda passa, mas a imagem perde nitidez."}
+    else{v.setAttribute("data-ok","no");msg="Grosso demais. O feixe de elétrons quase não atravessa o material biológico."}
+    $("vtext").textContent=msg;
+  }
+  th.addEventListener("input",sim);sim();
+
+  /* passo a passo */
+  var steps=[
+    ["Preparar","O tecido é fixado e incluído em uma resina dura. O bloco precisa ser rígido para aguentar o corte sem amassar."],
+    ["Prender","O bloco, já aparado, é preso na ponta de um braço da máquina, de frente para a faca."],
+    ["Regular","Um botão controla quanto o bloco avança a cada volta. No modelo comercial de 1953, de 25 a 500 nanômetros."],
+    ["Cortar","O bloco passa pela faca de vidro e solta uma fatia. A faca tem uma cuba de água logo atrás."],
+    ["Coletar","A fatia flutua na água. Depois ela é recolhida em uma grade de metal e levada ao microscópio eletrônico."]
+  ];
+  var sl=$("steplist"), cur=0;
+  steps.forEach(function(s,i){
+    var b=document.createElement("button");b.type="button";b.className="step";
+    b.innerHTML='<span class="label">Etapa '+(i+1)+'</span><span class="t">'+s[0]+'</span><p>'+s[1]+'</p>';
+    b.addEventListener("click",function(){cur=i;drawSteps()});
+    sl.appendChild(b);
+  });
+  function drawSteps(){
+    Array.prototype.forEach.call(sl.children,function(b,i){b.setAttribute("aria-pressed",i===cur?"true":"false")});
+    Array.prototype.forEach.call(document.querySelectorAll(".g"),function(g){
+      var on=g.getAttribute("data-s").split(",").indexOf(String(cur))>-1;
+      g.classList.toggle("on",on);
+    });
+  }
+  drawSteps();
+
+  /* linha do tempo */
+  var tl=[
+    {y:"1902",k:0,t:"Nasce na Alemanha",p:"Hertha Meyer nasce em 3 de maio. Estuda um curso técnico em doenças infecciosas em Berlim e, depois da perseguição aos judeus pelo regime nazista, vai trabalhar com Giuseppe Levi, na Universidade de Turim.",s:"Wikipédia; Jornal do Brasil"},
+    {y:"1939",k:0,t:"Chega ao Brasil",p:"Começa no laboratório do Instituto Rockefeller em Manguinhos, no Rio, na produção da vacina contra a febre amarela.",s:"Academia Brasileira de Ciências"},
+    {y:"1941",k:0,t:"Chefia o Laboratório de Cultura de Tecidos",p:"A convite de Carlos Chagas Filho, assume o laboratório que seria a base do Instituto de Biofísica. Ele manteve a contratação mesmo diante de ameaças de cortar verbas da pesquisa.",s:"Academia Brasileira de Ciências; Wikipédia"},
+    {y:"1951",k:1,t:"Chega o primeiro microscópio eletrônico",p:"O Instituto compra um Philips EM 100 e coloca o aparelho sob responsabilidade de Hertha. Ela faz estágio no Instituto Rockefeller, em Nova York, com Keith Porter, e passa a estudar a estrutura interna de parasitas como o Trypanosoma cruzi.",s:"Vitrines Memoriais do EMCCF; Academia Brasileira de Ciências"},
+    {y:"1952",k:1,t:"Experimento com Rita Levi-Montalcini",p:"Em 1 e 2 de novembro, a cientista italiana analisa no laboratório de Hertha, no Rio, o experimento ligado ao fator de crescimento nervoso. Rita ganha o Nobel de Medicina em 1986 e sempre citou a importância do laboratório do Rio.",s:"Jornal do Brasil (2012)"},
+    {y:"1953",k:1,t:"Porter e Blum apresentam o ultramicrótomo",p:"Keith Porter e Joseph Blum, no Instituto Rockefeller, criam o aparelho. A Sorvall passa a vendê-lo e ele vira padrão mundial. Segundo o TCC da UFRJ sobre o acervo, o exemplar do museu foi dado por Porter à Hertha, depois do estágio dela.",s:"Rockefeller University; TCC Bispo (UFRJ)"},
+    {y:"1971",k:0,t:"Segundo microscópio eletrônico",p:"O EM6-B AEI é instalado na Unidade de Microscopia Eletrônica do Instituto, com coordenação de Raul Machado.",s:"Vitrines Memoriais do EMCCF"},
+    {y:"1980",k:0,t:"Doutora Honoris Causa",p:"A UFRJ concede a Hertha o título. Ela também foi eleita para a Academia Brasileira de Ciências e recebeu os prêmios Álvaro Alberto, Estácio de Sá e Oswaldo Cruz.",s:"Academia Brasileira de Ciências; Wikipédia"},
+    {y:"1990",k:0,t:"Legado no nome do laboratório",p:"Hertha Meyer morre no Rio de Janeiro. O laboratório que criou hoje se chama Laboratório de Ultraestrutura Celular Hertha Meyer, e o auditório principal do Instituto leva o nome dela.",s:"Academia Brasileira de Ciências"}
+  ];
+  var rail=$("rail"), ti=5;
+  tl.forEach(function(e,i){
+    var b=document.createElement("button");b.type="button";b.setAttribute("role","tab");
+    b.textContent=e.y;if(e.k)b.className="key";
+    b.addEventListener("click",function(){ti=i;drawTl()});
+    rail.appendChild(b);
+  });
+  function drawTl(){
+    var e=tl[ti];
+    $("ty").textContent=e.y;$("tt").textContent=e.t;$("tp").textContent=e.p;$("ts").textContent="Fonte: "+e.s;
+    Array.prototype.forEach.call(rail.children,function(b,i){b.setAttribute("aria-selected",i===ti?"true":"false")});
+  }
+  drawTl();
+
+  /* quiz */
+  var qs=[
+    {q:"Por que o corte do ultramicrótomo precisa ser tão fino?",o:["Para o material caber na máquina","Porque os elétrons do microscópio eletrônico não atravessam material grosso","Para economizar resina","Para a fatia boiar mais rápido"],a:1,f:"Elétrons de um microscópio eletrônico comum não passam por material biológico bem mais grosso que 150 nm."},
+    {q:"Quem criou o ultramicrótomo Porter-Blum e onde?",o:["Hertha Meyer, no Rio de Janeiro","Carlos Chagas Filho, em Paris","Keith Porter e Joseph Blum, no Instituto Rockefeller, em Nova York","Rita Levi-Montalcini, em Turim"],a:2,f:"Foi em 1953. A Sorvall depois passou a fabricar e vender o aparelho."},
+    {q:"Qual descoberta passou pelo laboratório de Hertha Meyer no Rio, em 1952?",o:["A vacina da febre amarela","O experimento ligado ao fator de crescimento nervoso, com Rita Levi-Montalcini","A doença de Chagas","O microscópio óptico"],a:1,f:"Rita Levi-Montalcini ganhou o Nobel de Medicina em 1986 e citou os experimentos feitos no Rio."}
+  ];
+  var qi=0, score=0, answered=false, quiz=$("quiz");
+  function drawQuiz(){
+    quiz.innerHTML="";
+    if(qi>=qs.length){
+      quiz.innerHTML='<p class="label">Resultado</p><h3>'+score+' de '+qs.length+' respostas certas</h3><p style="margin:0">'+(score===qs.length?"Você leu tudo direitinho. Agora vale ver a máquina de perto.":"Releia as seções acima e tente de novo.")+'</p>';
+      var r=document.createElement("button");r.className="btn ghost";r.type="button";r.textContent="Refazer";
+      r.addEventListener("click",function(){qi=0;score=0;drawQuiz()});quiz.appendChild(r);return;
+    }
+    var q=qs[qi];answered=false;
+    var l=document.createElement("p");l.className="label";l.style.margin="0";l.textContent="Pergunta "+(qi+1)+" de "+qs.length;
+    var h=document.createElement("h3");h.textContent=q.q;
+    var opts=document.createElement("div");opts.className="q-opts";
+    var fb=document.createElement("p");fb.className="q-fb";fb.setAttribute("aria-live","polite");
+    var next=document.createElement("button");next.className="btn";next.type="button";next.disabled=true;
+    next.textContent=qi===qs.length-1?"Ver resultado":"Próxima";
+    q.o.forEach(function(txt,i){
+      var b=document.createElement("button");b.type="button";b.textContent=txt;
+      b.addEventListener("click",function(){
+        if(answered)return;answered=true;
+        var ok=i===q.a;if(ok)score++;
+        Array.prototype.forEach.call(opts.children,function(x,j){x.disabled=true;if(j===q.a)x.className="right";else if(j===i)x.className="wrong"});
+        fb.textContent=(ok?"Certo. ":"Quase. ")+q.f;next.disabled=false;
+      });
+      opts.appendChild(b);
+    });
+    next.addEventListener("click",function(){qi++;drawQuiz()});
+    var nav=document.createElement("div");nav.className="q-nav";nav.appendChild(next);
+    [l,h,opts,fb,nav].forEach(function(n){quiz.appendChild(n)});
+  }
+  drawQuiz();
+
+  /* perguntas */
+  var KEY="porterblum-perguntas", list=[];
+  try{list=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){list=[]}
+  var ql=$("qlist");
+  function drawList(){
+    ql.innerHTML="";
+    if(!list.length){var li=document.createElement("li");li.className="empty";li.textContent="Suas perguntas vão aparecer aqui.";ql.appendChild(li);return}
+    list.forEach(function(t){var li=document.createElement("li");li.textContent=t;ql.appendChild(li)});
+  }
+  drawList();
+  var ideas=["Por que a fatia precisa flutuar na água?","Como era usar essa máquina sem computador?","Que cuidados o museu tem para conservar o aparelho?"];
+  ideas.forEach(function(t){
+    var b=document.createElement("button");b.type="button";b.textContent=t;
+    b.addEventListener("click",function(){$("qtext").value=t;$("qtext").focus()});
+    $("chips").appendChild(b);
+  });
+  var EMAIL_URL="https://formsubmit.co/ajax/marialuiza.csouza@gmail.com";
+  $("askform").addEventListener("submit",function(ev){
+    ev.preventDefault();
+    var v=$("qtext").value.trim();if(!v)return;
+    var form=$("askform"), btn=form.querySelector("button[type=submit]"), st=$("qstatus");
+    var data=new FormData();
+    data.append("pergunta",v);
+    data.append("_subject","Nova pergunta no site Hertha Meyer");
+    data.append("_captcha","false");
+    data.append("_template","table");
+    data.append("_honey",form.elements["_honey"].value);
+    btn.disabled=true;st.textContent="Enviando…";
+    list.unshift(v);$("qtext").value="";drawList();
+    try{localStorage.setItem(KEY,JSON.stringify(list))}catch(e){}
+    fetch(EMAIL_URL,{method:"POST",headers:{"Accept":"application/json"},body:data})
+      .then(function(r){if(!r.ok)throw new Error();st.textContent="Pergunta enviada! Ela também ficou na sua lista."})
+      .catch(function(){st.textContent="Sua pergunta ficou na lista, mas não foi possível enviá-la agora. Tente de novo mais tarde."})
+      .then(function(){btn.disabled=false});
+  });
+
+  /* modelos */
+  var ms=[
+    {n:"Déficit",d:"Unidirecional",t:"O público tem um vazio de conhecimento e o cientista, emissor, preenche com informação. Textos e cartazes com muito conteúdo. Crítica da aula: trata o público como passivo e homogêneo."},
+    {n:"Contextual",d:"Unidirecional",t:"Reconhece que fatores sociais, culturais e psicológicos mudam como cada público recebe a ciência e adapta a mensagem. Crítica da aula: segue sendo de cima para baixo e pode virar uma forma elaborada de manipulação."},
+    {n:"Conhecimento Leigo",d:"Bidirecional",t:"Valoriza o conhecimento que vem da vida e da experiência de comunidades, e pressupõe diálogo entre cientistas e essas comunidades. Crítica da aula: pode ser acusado de anti-ciência."},
+    {n:"Engajamento Público",d:"Bidirecional",mine:1,t:"Atividades que fortalecem e estimulam a participação das pessoas na ciência e na política científica, numa tentativa de democratizar a ciência. Também chamado de modelo de diálogo, porque pressupõe uma contribuição do público. Foi o escolhido para este trabalho."}
+  ];
+  var mi=3, mw=$("models");
+  ms.forEach(function(m,i){
+    var b=document.createElement("button");b.type="button";b.className="model"+(m.mine?" mine":"");
+    b.innerHTML='<span class="tag">'+m.d+(m.mine?" · escolhido":"")+'</span><span class="nm">'+m.n+'</span>';
+    b.addEventListener("click",function(){mi=i;drawM()});
+    mw.appendChild(b);
+  });
+  function drawM(){
+    Array.prototype.forEach.call(mw.children,function(b,i){b.setAttribute("aria-pressed",i===mi?"true":"false")});
+    var m=ms[mi];$("mdetail").innerHTML='<h3></h3><p></p>';
+    $("mdetail").firstChild.textContent="Modelo "+m.n;$("mdetail").lastChild.textContent=m.t;
+  }
+  drawM();
+})();
+</script>
+
+</body></html>
